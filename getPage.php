@@ -14,7 +14,7 @@ use Nyholm\Psr7\Response;
 $request = Request::createFromGlobals();
 
 $pageId = $request->query->getString("page_id");
-$refresh = $request->query->getString("refresh");
+$refresh = $request->query->get("refresh", null);
 
 if (!$pageId) {
     return ResponseUtil::send404Response('Page not found');
@@ -30,7 +30,7 @@ try {
 }
 (new Dotenv())->load(__DIR__.'/.env');
 $error = $data = null;
-$key = RedisUtils::generateKey('page-'.$pageId);
+$key = RedisUtils::generateKey('page-'.$pageId, $refresh);
 try {
     $data = $cacheUtils->cache->get(
         $key,
@@ -52,7 +52,6 @@ if ($data) {
 }
 
 if ($error instanceof Response && $error->getStatusCode() === 404) {
-
     return ResponseUtil::send404Response($error->getReasonPhrase());
 }
 

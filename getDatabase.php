@@ -12,6 +12,7 @@ use Symfony\Contracts\Cache\ItemInterface;
 
 $request = Request::createFromGlobals();
 $id = $request->query->getString("id");
+$refresh = $request->query->get("refresh", null);
 
 if (!$id) {
     return ResponseUtil::send404Response('Database not found');
@@ -27,7 +28,7 @@ try {
 }
 (new Dotenv())->load(__DIR__.'/.env');
 
-$key = RedisUtils::generateKey('database-'.$id);
+$key = RedisUtils::generateKey('database-'.$id, $refresh);
 try {
     $data = $cacheUtils->cache->get(
         $key,

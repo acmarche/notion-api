@@ -17,6 +17,7 @@ use Symfony\Contracts\Cache\ItemInterface;
 
 $request = Request::createFromGlobals();
 $rowId = $request->query->getString("id");
+$refresh = $request->query->get("refresh", null);
 
 $cacheUtils = new RedisUtils();
 try {
@@ -29,7 +30,7 @@ try {
 (new Dotenv())->load(__DIR__.'/.env');
 
 $databaseId = $_ENV['NOTION_ACTIVITIES_DATABASE_ID'];
-$key = RedisUtils::generateKey('database-query-'.$databaseId);
+$key = RedisUtils::generateKey('database-query-'.$databaseId, $refresh);
 
 try {
     $data = $cacheUtils->cache->get(

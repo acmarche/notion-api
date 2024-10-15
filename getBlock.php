@@ -13,6 +13,7 @@ use Symfony\Contracts\Cache\ItemInterface;
 
 $request = Request::createFromGlobals();
 $id = $request->query->getString("id");
+$refresh = $request->query->get("refresh", null);
 
 if (!$id) {
     return ResponseUtil::send404Response('Block not found');
@@ -28,7 +29,7 @@ try {
 }
 (new Dotenv())->load(__DIR__.'/.env');
 
-$key = RedisUtils::generateKey('block-'.$id);
+$key = RedisUtils::generateKey('block-'.$id, $refresh);
 try {
     $data = $cacheUtils->cache->get(
         $key,
@@ -40,7 +41,7 @@ try {
             return $fetch->getBlock($id);
         },
     );
-dd($data);
+
     return ResponseUtil::sendSuccessResponse($data, 'Get successfully database');
 } catch (\Psr\Cache\InvalidArgumentException|\Exception $e) {
     Mailer::sendError($e->getMessage());

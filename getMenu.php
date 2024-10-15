@@ -7,8 +7,11 @@ use AcMarche\Notion\Lib\Menu;
 use AcMarche\Notion\Lib\RedisUtils;
 use AcMarche\Notion\Lib\ResponseUtil;
 use Symfony\Component\Dotenv\Dotenv;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Cache\ItemInterface;
 
+$request = Request::createFromGlobals();
+$refresh = $request->query->get("refresh", null);
 $cacheUtils = new RedisUtils();
 try {
     $cacheUtils->instance();
@@ -19,7 +22,7 @@ try {
 }
 (new Dotenv())->load(__DIR__.'/.env');
 
-$key = RedisUtils::generateKey('menu');
+$key = RedisUtils::generateKey('menu', $refresh);
 try {
     $data = $cacheUtils->cache->get(
         $key,

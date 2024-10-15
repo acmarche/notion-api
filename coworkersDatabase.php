@@ -17,6 +17,7 @@ use Symfony\Contracts\Cache\ItemInterface;
 
 $request = Request::createFromGlobals();
 $rowId = $request->query->getString("id");
+$refresh = $request->query->get("refresh", null);
 
 $cacheUtils = new RedisUtils();
 try {
@@ -29,7 +30,7 @@ try {
 (new Dotenv())->load(__DIR__.'/.env');
 
 $databaseId = $_ENV['NOTION_COWORKERS_DATABASE_ID'];
-$key = RedisUtils::generateKey('database-query-'.$databaseId);
+$key = RedisUtils::generateKey('database-query-'.$databaseId, $refresh);
 
 try {
     $data = $cacheUtils->cache->get(
@@ -43,13 +44,13 @@ try {
             $query = Query::create()
                 ->changeFilter(
                     CompoundFilter::and(
-                   //     StatusFilter::property('Type de membre')->equals('Coworker'),
+                    //     StatusFilter::property('Type de membre')->equals('Coworker'),
                         Query\MultiSelectFilter::property('Type de membre')->contains('Coworker'),
                     ),
                 )
                 ->addSort(Sort::property("Nom")->ascending());
 
-            return $fetch->query($database, $query, $rowId,false);
+            return $fetch->query($database, $query, $rowId, false);
         },
     );
 
