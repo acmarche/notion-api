@@ -30,7 +30,10 @@ try {
 }
 (new Dotenv())->load(__DIR__.'/.env');
 $error = $data = null;
-$key = RedisUtils::generateKey('page-'.$pageId, $refresh);
+$key = RedisUtils::generateKey('page-'.$pageId);
+if ($refresh) {
+    $cacheUtils->delete($key);
+}
 try {
     $data = $cacheUtils->cache->get(
         $key,

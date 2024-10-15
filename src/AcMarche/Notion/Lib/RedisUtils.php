@@ -36,20 +36,21 @@ class RedisUtils
         return new self();
     }
 
-    public static function generateKey(string $cacheKey, int|null $refresh): string
+    public static function generateKey(string $cacheKey): string
     {
         if ($_ENV['APP_ENV'] === 'dev') {
             return $cacheKey.'-'.time();
         }
 
-        if ($refresh != null || $refresh > 0) {
+        return $cacheKey;
+    }
+
+    public function delete(string $cacheKey): void
+    {
             try {
-                self::getInstance()->cache->delete($cacheKey);
-            } catch (InvalidArgumentException $error) {
+                $this->cache->delete($cacheKey);
+            } catch (InvalidArgumentException|\Exception $error) {
                 Mailer::sendError($error->getMessage());
             }
-        }
-
-        return $cacheKey;
     }
 }

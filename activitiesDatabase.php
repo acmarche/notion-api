@@ -30,7 +30,10 @@ try {
 (new Dotenv())->load(__DIR__.'/.env');
 
 $databaseId = $_ENV['NOTION_ACTIVITIES_DATABASE_ID'];
-$key = RedisUtils::generateKey('database-query-'.$databaseId, $refresh);
+$key = RedisUtils::generateKey('database-query-'.$databaseId);
+if ($refresh) {
+    $cacheUtils->delete($key);
+}
 
 try {
     $data = $cacheUtils->cache->get(

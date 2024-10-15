@@ -29,7 +29,10 @@ try {
 }
 (new Dotenv())->load(__DIR__.'/.env');
 
-$key = RedisUtils::generateKey('block-'.$id, $refresh);
+$key = RedisUtils::generateKey('block-'.$id);
+if ($refresh) {
+    $cacheUtils->delete($key);
+}
 try {
     $data = $cacheUtils->cache->get(
         $key,

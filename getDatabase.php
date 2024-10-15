@@ -28,7 +28,10 @@ try {
 }
 (new Dotenv())->load(__DIR__.'/.env');
 
-$key = RedisUtils::generateKey('database-'.$id, $refresh);
+$key = RedisUtils::generateKey('database-'.$id);
+if ($refresh) {
+    $cacheUtils->delete($key);
+}
 try {
     $data = $cacheUtils->cache->get(
         $key,

@@ -22,7 +22,10 @@ try {
 }
 (new Dotenv())->load(__DIR__.'/.env');
 
-$key = RedisUtils::generateKey('menu', $refresh);
+$key = RedisUtils::generateKey('menu');
+if ($refresh) {
+    $cacheUtils->delete($key);
+}
 try {
     $data = $cacheUtils->cache->get(
         $key,
