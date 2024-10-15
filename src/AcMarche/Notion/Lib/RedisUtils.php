@@ -2,6 +2,7 @@
 
 namespace AcMarche\Notion\Lib;
 
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
 use Symfony\Component\Cache\Adapter\RedisTagAwareAdapter;
 use Symfony\Component\String\Slugger\AsciiSlugger;
@@ -30,10 +31,23 @@ class RedisUtils
         return $this->cache;
     }
 
+    public static function getInstance(): self
+    {
+        return new self();
+    }
+
     public static function generateKey(string $cacheKey, int|null $refresh): string
     {
-        if ($_ENV['APP_ENV'] === 'dev' || $refresh != null || $refresh > 0) {
-            $cacheKey = $cacheKey.'-refresh-'.time();
+        if ($_ENV['APP_ENV'] === 'dev') {
+            return $cacheKey.'-'.time();
+        }
+
+        if ($refresh != null || $refresh > 0) {
+            try {
+                self::getInstance()->cache->delete($cacheKey);
+            } catch (InvalidArgumentException $error) {
+                Mailer::sendError($error->getMessage());
+            }
         }
 
         return $cacheKey;
