@@ -31,10 +31,12 @@ try {
 
 $databaseId = $_ENV['NOTION_ACTIVITIES_DATABASE_ID'];
 $key = RedisUtils::generateKey('database-query-'.$databaseId);
+if($rowId) {
+    $key .= '-'.$rowId;
+}
 if ($refresh) {
     $cacheUtils->delete($key);
 }
-
 try {
     $data = $cacheUtils->cache->get(
         $key,
