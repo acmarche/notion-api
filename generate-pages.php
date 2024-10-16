@@ -15,8 +15,6 @@ $fetchMenu = new Menu();
 $cacheUtils = new RedisUtils();
 $fetch = new PageGet();
 
-var_dump($_ENV);
-exit();
 try {
     $cacheUtils->instance();
 } catch (\Exception $e) {
