@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Cache\ItemInterface;
 
 $request = Request::createFromGlobals();
-$rowId = $request->query->getString("id");
+$rowId = $request->query->get("id",null);
 $refresh = $request->query->get("refresh", null);
 
 $cacheUtils = new RedisUtils();
