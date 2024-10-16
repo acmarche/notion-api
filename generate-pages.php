@@ -22,15 +22,35 @@ try {
     exit();
 }
 
-foreach ($fetchMenu->getMenu() as $page) {
+$key = RedisUtils::generateKey('menu');
+try {
+    $menu = $cacheUtils->cache->get(
+        $key,
+        function (ItemInterface $item) {
+            $item->expiresAfter(RedisUtils::DURATION_LONG);
+            $item->tag(RedisUtils::TAG);
+
+            $fetch = new Menu();
+
+            return $fetch->getMenu();
+        },
+    );
+} catch (\Psr\Cache\InvalidArgumentException|\Exception$e) {
+    Mailer::sendError($e->getMessage());
+
+    return;
+}
+
+foreach ($menu as $page) {
     $key = RedisUtils::generateKey('page-'.$page['id']);
     //$cacheUtils->delete($key);
     try {
         $cacheUtils->cache->get(
             $key,
             function (ItemInterface $item) use ($fetch, $key, $page) {
-            $item->expiresAfter(RedisUtils::DURATION);
-            $item->tag(RedisUtils::TAG);
+                $item->expiresAfter(RedisUtils::DURATION);
+                $item->tag(RedisUtils::TAG);
+
                 return $fetch->fetchById($page['id']);
             },
         );
