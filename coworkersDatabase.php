@@ -47,8 +47,8 @@ try {
             $query = Query::create()
                 ->changeFilter(
                     CompoundFilter::and(
-                    //     StatusFilter::property('Type de membre')->equals('Coworker'),
-                        Query\MultiSelectFilter::property('Type de membre')->contains('Coworker'),
+                         Query\MultiSelectFilter::property('Type de membre')->contains('Coworker'),
+                         Query\StatusFilter::property('Convention coworking')->equals('Actif'),
                     ),
                 )
                 ->addSort(Sort::property("Nom")->ascending());
