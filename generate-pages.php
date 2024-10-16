@@ -13,7 +13,8 @@ $fetchMenu = new Menu();
 $cacheUtils = new RedisUtils();
 $fetch = new PageGet();
 
-(new Dotenv())->load(__DIR__.'/.env2');
+(new Dotenv())->load(__DIR__.'/.env');
+var_dump($_ENV);
 try {
     $cacheUtils->instance();
 } catch (\Exception $e) {
