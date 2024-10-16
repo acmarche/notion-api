@@ -9,11 +9,12 @@ use AcMarche\Notion\Lib\RedisUtils;
 use Symfony\Component\Dotenv\Dotenv;
 use Symfony\Contracts\Cache\ItemInterface;
 
+(new Dotenv())->load(__DIR__.'/.env');
+
 $fetchMenu = new Menu();
 $cacheUtils = new RedisUtils();
 $fetch = new PageGet();
 
-(new Dotenv())->load(__DIR__.'/.env');
 var_dump($_ENV);
 exit();
 try {
