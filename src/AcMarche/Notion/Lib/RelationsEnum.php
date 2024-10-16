@@ -13,7 +13,7 @@ enum RelationsEnum: string
     public function properties(): array
     {
         return match ($this) {
-            RelationsEnum::events => ['Salles'],
+            RelationsEnum::events => ['Salles','Listing organisateurs'],
         };
     }
 }
