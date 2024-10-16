@@ -27,7 +27,7 @@ class DatabaseGet
         $database = $this->getById($id);
         $pages = array_map(function (Page $page) {
             return $page->toArray();
-        }, $this->getNotion()->databases()->queryAllPages($database));
+        }, $this->getAllPagesByDatabase($database));
 
         return ['database' => $database->toArray(), 'pages' => $pages];
     }
@@ -38,7 +38,20 @@ class DatabaseGet
     }
 
     /**
-     * @throws \Exception
+     * @param Database $database
+     * @return Page[]
+     */
+    public function getAllPagesByDatabase(Database $database): array
+    {
+        return $this->getNotion()->databases()->queryAllPages($database);
+    }
+
+    /**
+     * @param Database $database
+     * @param Query $query
+     * @param string|null $rowId
+     * @param bool $fetChildren
+     * @return array
      */
     public function query(Database $database, Query $query, ?string $rowId = null, bool $fetChildren = true): array
     {
@@ -61,6 +74,23 @@ class DatabaseGet
         }
 
         return ['database' => $database->toArray(), 'pages' => $pages];
+    }
+
+    public function addRelations(Database $database): array
+    {
+        $relations = [];
+        foreach ($database->properties as $property) {
+            if ($property->metadata()->type->value === 'relation') {
+                $relations[$property->metadata()->name] = [];
+                $childDatabase = $this->getById($property->databaseId);
+                $pages = $this->getAllPagesByDatabase($childDatabase);
+                foreach ($pages as $page) {
+                    $relations[$property->metadata()->name][] = $page->toArray();
+                }
+            }
+        }
+
+        return $relations;
     }
 
     /**
