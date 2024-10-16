@@ -44,7 +44,7 @@ try {
 
 foreach ($menu as $page) {
     $key = RedisUtils::generateKey('page-'.$page['id']);
-    //$cacheUtils->delete($key);
+    $cacheUtils->delete($key);
     try {
         $cacheUtils->cache->get(
             $key,
@@ -67,6 +67,7 @@ $key = RedisUtils::generateKey('database-activities-'.$databaseId);
 $fetch = new DatabaseGet();
 
 echo "Events database \n";
+$cacheUtils->delete($key);
 try {
     $cacheUtils->cache->get(
         $key,
@@ -74,7 +75,7 @@ try {
             $item->expiresAfter(RedisUtils::DURATION);
             $item->tag(RedisUtils::TAG);
 
-            $fetch->getEvents($databaseId);
+          return    $fetch->getEvents($databaseId);
         },
     );
 } catch (\Exception|\Psr\Cache\InvalidArgumentException $e) {
@@ -83,7 +84,7 @@ try {
 
 $databaseId = $_ENV['NOTION_COWORKERS_DATABASE_ID'];
 $key = RedisUtils::generateKey('database-coworkers-'.$databaseId);
-
+$cacheUtils->delete($key);
 try {
     $cacheUtils->cache->get(
         $key,
@@ -91,7 +92,7 @@ try {
             $item->expiresAfter(RedisUtils::DURATION);
             $item->tag(RedisUtils::TAG);
 
-            $fetch->getCoworkers($databaseId);
+            return $fetch->getCoworkers($databaseId);
         },
     );
 } catch (\Exception|\Psr\Cache\InvalidArgumentException $e) {
