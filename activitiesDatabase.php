@@ -6,11 +6,6 @@ use AcMarche\Notion\Lib\DatabaseGet;
 use AcMarche\Notion\Lib\Mailer;
 use AcMarche\Notion\Lib\RedisUtils;
 use AcMarche\Notion\Lib\ResponseUtil;
-use Notion\Databases\Query;
-use Notion\Databases\Query\CompoundFilter;
-use Notion\Databases\Query\DateFilter;
-use Notion\Databases\Query\Sort;
-use Notion\Databases\Query\StatusFilter;
 use Symfony\Component\Dotenv\Dotenv;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -30,7 +25,7 @@ try {
 (new Dotenv())->load(__DIR__.'/.env');
 
 $databaseId = $_ENV['NOTION_ACTIVITIES_DATABASE_ID'];
-$key = RedisUtils::generateKey('database-query-'.$databaseId);
+$key = RedisUtils::generateKey('database-activities-'.$databaseId);
 if($rowId) {
     $key .= '-'.$rowId;
 }
@@ -44,19 +39,7 @@ try {
             $item->expiresAfter(RedisUtils::DURATION);
             $item->tag(RedisUtils::TAG);
             $fetch = new DatabaseGet();
-            $database = $fetch->getById($databaseId);
-            $today = new \DateTime();
-
-            $query = Query::create()
-                ->changeFilter(
-                    CompoundFilter::and(
-                        StatusFilter::property('Statut')->equals('Date validée (Public)'),
-                        DateFilter::property('Date')->after($today->format('Y-m-d')),
-                    ),
-                )
-                ->addSort(Sort::property("Date")->ascending());
-
-            return $fetch->query($database, $query, $rowId);
+            return $fetch->getEvents($databaseId, $rowId);
         },
     );
 

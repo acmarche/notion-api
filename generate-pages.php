@@ -2,6 +2,7 @@
 
 require "vendor/autoload.php";
 
+use AcMarche\Notion\Lib\DatabaseGet;
 use AcMarche\Notion\Lib\Mailer;
 use AcMarche\Notion\Lib\Menu;
 use AcMarche\Notion\Lib\PageGet;
@@ -59,4 +60,23 @@ foreach ($menu as $page) {
         continue;
     }
     echo $page['name']."\n";
+}
+
+$databaseId = $_ENV['NOTION_ACTIVITIES_DATABASE_ID'];
+$key = RedisUtils::generateKey('database-activities-'.$databaseId);
+$fetch = new DatabaseGet();
+
+try {
+    $fetch->getEvents($databaseId);
+} catch (Exception $e) {
+    Mailer::sendError($e->getMessage());
+}
+
+$databaseId = $_ENV['NOTION_COWORKERS_DATABASE_ID'];
+$key = RedisUtils::generateKey('database-coworkers-'.$databaseId);
+
+try {
+    $fetch->getCoworkers($databaseId);
+} catch (Exception $e) {
+    Mailer::sendError($e->getMessage());
 }

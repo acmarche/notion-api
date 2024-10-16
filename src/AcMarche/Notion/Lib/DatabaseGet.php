@@ -4,6 +4,10 @@ namespace AcMarche\Notion\Lib;
 
 use Notion\Databases\Database;
 use Notion\Databases\Query;
+use Notion\Databases\Query\CompoundFilter;
+use Notion\Databases\Query\DateFilter;
+use Notion\Databases\Query\Sort;
+use Notion\Databases\Query\StatusFilter;
 use Notion\Pages\Page;
 
 class DatabaseGet
@@ -57,5 +61,44 @@ class DatabaseGet
         }
 
         return ['database' => $database->toArray(), 'pages' => $pages];
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function getEvents(string $databaseId, ?string $rowId = null): array
+    {
+        $database = $this->getById($databaseId);
+        $today = new \DateTime();
+
+        $query = Query::create()
+            ->changeFilter(
+                CompoundFilter::and(
+                    StatusFilter::property('Statut')->equals('Date validée (Public)'),
+                    DateFilter::property('Date')->after($today->format('Y-m-d')),
+                ),
+            )
+            ->addSort(Sort::property("Date")->ascending());
+
+        return $this->query($database, $query, $rowId);
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function getCoworkers(string $databaseId, ?string $rowId = null): array
+    {
+        $database = $this->getById($databaseId);
+
+        $query = Query::create()
+            ->changeFilter(
+                CompoundFilter::and(
+                    Query\MultiSelectFilter::property('Type de membre')->contains('Coworker'),
+                    Query\StatusFilter::property('Convention coworking')->equals('Actif'),
+                ),
+            )
+            ->addSort(Sort::property("Nom")->ascending());
+
+        return $this->query($database, $query, $rowId, false);
     }
 }
