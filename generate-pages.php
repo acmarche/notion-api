@@ -68,8 +68,16 @@ $fetch = new DatabaseGet();
 
 echo "Events database \n";
 try {
-    $fetch->getEvents($databaseId);
-} catch (Exception $e) {
+    $cacheUtils->cache->get(
+        $key,
+        function (ItemInterface $item) use ($fetch, $key, $databaseId) {
+            $item->expiresAfter(RedisUtils::DURATION);
+            $item->tag(RedisUtils::TAG);
+
+            $fetch->getEvents($databaseId);
+        },
+    );
+} catch (\Exception|\Psr\Cache\InvalidArgumentException $e) {
     Mailer::sendError($e->getMessage());
 }
 
@@ -77,8 +85,17 @@ $databaseId = $_ENV['NOTION_COWORKERS_DATABASE_ID'];
 $key = RedisUtils::generateKey('database-coworkers-'.$databaseId);
 
 try {
-    $fetch->getCoworkers($databaseId);
-} catch (Exception $e) {
+    $cacheUtils->cache->get(
+        $key,
+        function (ItemInterface $item) use ($fetch, $key, $databaseId) {
+            $item->expiresAfter(RedisUtils::DURATION);
+            $item->tag(RedisUtils::TAG);
+
+            $fetch->getCoworkers($databaseId);
+        },
+    );
+} catch (\Exception|\Psr\Cache\InvalidArgumentException $e) {
     Mailer::sendError($e->getMessage());
 }
+
 echo "Coworkers database \n";
