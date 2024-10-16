@@ -15,6 +15,7 @@ $fetch = new PageGet();
 
 (new Dotenv())->load(__DIR__.'/.env');
 var_dump($_ENV);
+exit();
 try {
     $cacheUtils->instance();
 } catch (\Exception $e) {
