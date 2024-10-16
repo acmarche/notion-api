@@ -69,19 +69,40 @@ $fetch = new DatabaseGet();
 echo "Events database \n";
 $cacheUtils->delete($key);
 try {
-    $cacheUtils->cache->get(
+    $events = $cacheUtils->cache->get(
         $key,
         function (ItemInterface $item) use ($fetch, $key, $databaseId) {
             $item->expiresAfter(RedisUtils::DURATION);
             $item->tag(RedisUtils::TAG);
 
-          return    $fetch->getEvents($databaseId);
+            return $fetch->getEvents($databaseId);
         },
     );
 } catch (\Exception|\Psr\Cache\InvalidArgumentException $e) {
     Mailer::sendError($e->getMessage());
+    $events = [];
 }
+foreach ($events as $event) {
+    $key = RedisUtils::generateKey('database-activities-'.$databaseId);
+    $key .= '-'.$event['id'];
+    try {
+        $cacheUtils->cache->get(
+            $key,
+            function (ItemInterface $item) use ($databaseId, $event) {
+                $item->expiresAfter(RedisUtils::DURATION);
+                $item->tag(RedisUtils::TAG);
+                $fetch = new DatabaseGet();
 
+                return $fetch->getEvents($databaseId, $event['id']);
+            },
+        );
+        continue;
+    } catch (\Psr\Cache\InvalidArgumentException|\Exception $e) {
+        Mailer::sendError($e->getMessage());
+
+        continue;
+    }
+}
 $databaseId = $_ENV['NOTION_COWORKERS_DATABASE_ID'];
 $key = RedisUtils::generateKey('database-coworkers-'.$databaseId);
 $cacheUtils->delete($key);
