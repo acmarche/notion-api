@@ -66,6 +66,7 @@ $databaseId = $_ENV['NOTION_ACTIVITIES_DATABASE_ID'];
 $key = RedisUtils::generateKey('database-activities-'.$databaseId);
 $fetch = new DatabaseGet();
 
+echo "Events database \n";
 try {
     $fetch->getEvents($databaseId);
 } catch (Exception $e) {
@@ -80,3 +81,4 @@ try {
 } catch (Exception $e) {
     Mailer::sendError($e->getMessage());
 }
+echo "Coworkers database \n";
