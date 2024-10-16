@@ -5,7 +5,6 @@ namespace AcMarche\Notion\Lib;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
 use Symfony\Component\Cache\Adapter\RedisTagAwareAdapter;
-use Symfony\Component\String\Slugger\AsciiSlugger;
 use Symfony\Contracts\Cache\CacheInterface;
 
 class RedisUtils

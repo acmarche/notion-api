@@ -13,6 +13,7 @@ $fetchMenu = new Menu();
 $cacheUtils = new RedisUtils();
 $fetch = new PageGet();
 
+(new Dotenv())->load(__DIR__.'/.env');
 try {
     $cacheUtils->instance();
 } catch (\Exception $e) {
@@ -20,7 +21,6 @@ try {
     exit();
 }
 
-(new Dotenv())->load(__DIR__.'/.env');
 foreach ($fetchMenu->getMenu() as $page) {
     $key = RedisUtils::generateKey('page-'.$page['id']);
     //$cacheUtils->delete($key);
