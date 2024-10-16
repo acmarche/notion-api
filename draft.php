@@ -4,6 +4,7 @@ require "vendor/autoload.php";
 
 use AcMarche\Notion\Lib\DatabaseGet;
 use AcMarche\Notion\Lib\RedisUtils;
+use AcMarche\Notion\Lib\RelationsEnum;
 use AcMarche\Notion\Lib\ResponseUtil;
 use Symfony\Component\Dotenv\Dotenv;
 
@@ -15,7 +16,7 @@ $key = RedisUtils::generateKey('database-activities-'.$databaseId);
 //echo "Events database \n";
 
 $database = $fetch->getById($databaseId);
-$pages = $fetch->addRelations($database);
+$pages = $fetch->addRelations($database, RelationsEnum::events);
 
     return ResponseUtil::sendSuccessResponse($pages, 'Get successfully database');
 dd($pages);

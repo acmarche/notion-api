@@ -50,11 +50,17 @@ class DatabaseGet
      * @param Database $database
      * @param Query $query
      * @param string|null $rowId
-     * @param bool $fetChildren
+     * @param bool $fetchChildren
+     * @param bool $addRelations
      * @return array
      */
-    public function query(Database $database, Query $query, ?string $rowId = null, bool $fetChildren = true): array
-    {
+    public function query(
+        Database $database,
+        Query $query,
+        ?string $rowId = null,
+        bool $fetchChildren = true,
+        bool $addRelations = false,
+    ): array {
         $result = $this->getNotion()->databases()->query($database, $query);
         $pages = [];
         foreach ($result->pages as $page) {
@@ -62,7 +68,7 @@ class DatabaseGet
                 continue;
             }
             $blocks = [];
-            if ($fetChildren) {
+            if ($fetchChildren) {
                 $children = $this->getNotion()->blocks()->findChildren($page->id);
                 foreach ($children as $block) {
                     $blocks[] = Blocks::getBlocks($block);
@@ -73,19 +79,28 @@ class DatabaseGet
             $pages[] = $data;
         }
 
-        return ['database' => $database->toArray(), 'pages' => $pages];
+        $data = ['database' => $database->toArray(), 'pages' => $pages];
+
+        if ($addRelations) {
+            $data['relations'] = $this->addRelations($database, RelationsEnum::events);
+        }
+
+        return $data;
     }
 
-    public function addRelations(Database $database): array
+    public function addRelations(Database $database, RelationsEnum $relationsEnum): array
     {
         $relations = [];
         foreach ($database->properties as $property) {
             if ($property->metadata()->type->value === 'relation') {
-                $relations[$property->metadata()->name] = [];
-                $childDatabase = $this->getById($property->databaseId);
-                $pages = $this->getAllPagesByDatabase($childDatabase);
-                foreach ($pages as $page) {
-                    $relations[$property->metadata()->name][] = $page->toArray();
+                $name = $property->metadata()->name;
+                if (in_array($name, $relationsEnum->properties())) {
+                    $relations[$name] = [];
+                    $childDatabase = $this->getById($property->databaseId);
+                    $pages = $this->getAllPagesByDatabase($childDatabase);
+                    foreach ($pages as $page) {
+                        $relations[$name][] = $page->toArray();
+                    }
                 }
             }
         }
@@ -110,7 +125,7 @@ class DatabaseGet
             )
             ->addSort(Sort::property("Date")->ascending());
 
-        return $this->query($database, $query, $rowId);
+        return $this->query($database, $query, $rowId, true, true);
     }
 
     /**
