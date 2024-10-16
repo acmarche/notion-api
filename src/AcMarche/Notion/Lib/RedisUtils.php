@@ -17,7 +17,6 @@ class RedisUtils
 
     public function __construct()
     {
-        $this->slugger = new AsciiSlugger();
         $this->cache = null;
     }
 
