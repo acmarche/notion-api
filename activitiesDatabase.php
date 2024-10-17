@@ -26,7 +26,6 @@ try {
 
 $databaseId = $_ENV['NOTION_ACTIVITIES_DATABASE_ID'];
 $key = RedisUtils::generateKey('database-activities-'.$databaseId);
-$key = 'database-activities-'.$databaseId;
 if ($rowId == 'null') {
     $rowId = 0;
 }
