@@ -18,6 +18,7 @@ $refresh = $request->query->get("refresh", null);
 if (!$id) {
     return ResponseUtil::send404Response('Block not found');
 }
+(new Dotenv())->load(__DIR__.'/.env');
 
 $cacheUtils = new RedisUtils();
 try {
@@ -27,7 +28,6 @@ try {
 
     return ResponseUtil::sendErrorResponse($e->getMessage());
 }
-(new Dotenv())->load(__DIR__.'/.env');
 
 $key = RedisUtils::generateKey('block-'.$id);
 if ($refresh) {

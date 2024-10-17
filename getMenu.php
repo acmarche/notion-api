@@ -13,6 +13,7 @@ use Symfony\Contracts\Cache\ItemInterface;
 $request = Request::createFromGlobals();
 $refresh = $request->query->get("refresh", null);
 $cacheUtils = new RedisUtils();
+(new Dotenv())->load(__DIR__.'/.env');
 try {
     $cacheUtils->instance();
 } catch (\Exception $e) {
@@ -20,7 +21,6 @@ try {
 
     return ResponseUtil::sendErrorResponse($e->getMessage());
 }
-(new Dotenv())->load(__DIR__.'/.env');
 
 $key = RedisUtils::generateKey('menu');
 if ($refresh) {

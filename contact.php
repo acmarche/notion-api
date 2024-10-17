@@ -10,6 +10,7 @@ use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 $request = Request::createFromGlobals();
 
+(new Dotenv())->load(__DIR__.'/.env');
 $data = json_decode($request->getContent(false));
 $contact = $data->contact;
 
@@ -17,7 +18,6 @@ if (!$contact->name && $contact->email && !$contact->message) {
     return ResponseUtil::sendSuccessResponse(['error' => 'xx', 'data' => $contact], "contaat");
 }
 
-(new Dotenv())->load(__DIR__.'/.env');
 try {
     $mailer = new Mailer();
     $mailer->sendContact($contact);

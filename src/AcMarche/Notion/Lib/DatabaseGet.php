@@ -9,6 +9,8 @@ use Notion\Databases\Query\DateFilter;
 use Notion\Databases\Query\Sort;
 use Notion\Databases\Query\StatusFilter;
 use Notion\Pages\Page;
+use Notion\Pages\Properties\PropertyType;
+use Notion\Pages\Properties\Relation;
 
 class DatabaseGet
 {
@@ -52,7 +54,7 @@ class DatabaseGet
      * @param string|null $rowId
      * @param bool $fetchChildren
      * @param bool $addRelations
-     * @return array
+     * @return array{ database: Database, pages: Page[], relations: Page[]}
      */
     public function query(
         Database $database,
@@ -63,6 +65,9 @@ class DatabaseGet
     ): array {
         $result = $this->getNotion()->databases()->query($database, $query);
         $pages = [];
+        if ($addRelations) {
+            $relations = $this->getRelations($database, RelationsEnum::events);
+        }
         foreach ($result->pages as $page) {
             if ($rowId && $page->id !== $rowId) {
                 continue;
@@ -74,21 +79,54 @@ class DatabaseGet
                     $blocks[] = Blocks::getBlocks($block);
                 }
             }
+
+            /**
+             * add meta
+             */
+            $metas = [];
+            if ($addRelations) {
+                foreach ($page->properties as $propertyName => $property) {
+                    /**
+                     * @var Relation $property
+                     */
+                    if ($property->metadata()->type === PropertyType::Relation) {
+                        if ($jfs = $this->propertyFind($property, $propertyName, $relations)) {
+                            $metas[$propertyName] = $jfs;
+                        }
+                    }
+                }
+            }
+
+            /**
+             * end
+             */
             $data = $page->toArray();
+            $data['metas'] = $metas;
             $data['blocks'] = $blocks;
             $pages[] = $data;
         }
 
-        $data = ['database' => $database->toArray(), 'pages' => $pages];
-
-        if ($addRelations) {
-            $data['relations'] = $this->addRelations($database, RelationsEnum::events);
-        }
-
-        return $data;
+        return ['database' => $database->toArray(), 'pages' => $pages];
     }
 
-    public function addRelations(Database $database, RelationsEnum $relationsEnum): array
+    private function propertyFind(Relation $property, string $propertyName, array $relations): array
+    {
+        $values = [];
+        if (isset($relations[$propertyName])) {
+            foreach ($property->pageIds as $pageId) {
+                foreach ($relations[$propertyName] as $room) {
+                    if ($room['id'] == $pageId) {
+                        $values[] = $room;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return $values;
+    }
+
+    public function getRelations(Database $database, RelationsEnum $relationsEnum): array
     {
         $relations = [];
         foreach ($database->properties as $property) {
@@ -109,6 +147,8 @@ class DatabaseGet
     }
 
     /**
+     * @return array{ database: Database, pages: Page[], relations: Page[]}
+     *
      * @throws \Exception
      */
     public function getEvents(string $databaseId, ?string $rowId = null): array

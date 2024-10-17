@@ -15,6 +15,7 @@ $rowId = $request->query->getString("id");
 $refresh = $request->query->get("refresh", null);
 
 $cacheUtils = new RedisUtils();
+(new Dotenv())->load(__DIR__.'/.env');
 try {
     $cacheUtils->instance();
 } catch (\Exception $e) {
@@ -22,7 +23,6 @@ try {
 
     return ResponseUtil::sendErrorResponse($e->getMessage());
 }
-(new Dotenv())->load(__DIR__.'/.env');
 
 $databaseId = $_ENV['NOTION_COWORKERS_DATABASE_ID'];
 $key = RedisUtils::generateKey('database-coworkers-'.$databaseId);

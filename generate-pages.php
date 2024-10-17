@@ -82,7 +82,7 @@ try {
     Mailer::sendError($e->getMessage());
     $events = [];
 }
-foreach ($events as $event) {
+foreach ($events['pages'] as $event) {
     $key = RedisUtils::generateKey('database-activities-'.$databaseId);
     $key .= '-'.$event['id'];
     try {

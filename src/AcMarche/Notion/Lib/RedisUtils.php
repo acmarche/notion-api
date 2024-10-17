@@ -19,11 +19,18 @@ class RedisUtils
         $this->cache = null;
     }
 
+    /**
+     * @throws \Exception
+     */
     public function instance(): CacheInterface|RedisTagAwareAdapter
     {
-        if (!$this->cache) {
-            $client = RedisAdapter::createConnection('redis://localhost');
-            $this->cache = new RedisTagAwareAdapter($client);
+        try {
+            if (!$this->cache) {
+                $client = RedisAdapter::createConnection('redis://localhost');
+                $this->cache = new RedisTagAwareAdapter($client);
+            }
+        } catch (\Exception $e) {
+            throw new \Exception('Connection refusé au serveur de cache');
         }
 
         return $this->cache;
@@ -45,10 +52,10 @@ class RedisUtils
 
     public function delete(string $cacheKey): void
     {
-            try {
-                $this->cache->delete($cacheKey);
-            } catch (InvalidArgumentException|\Exception $error) {
-                Mailer::sendError($error->getMessage());
-            }
+        try {
+            $this->cache->delete($cacheKey);
+        } catch (InvalidArgumentException|\Exception $error) {
+            Mailer::sendError($error->getMessage());
+        }
     }
 }

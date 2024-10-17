@@ -11,9 +11,10 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Cache\ItemInterface;
 
 $request = Request::createFromGlobals();
-$rowId = $request->query->get("id",null);
+$rowId = $request->query->get("id", null);
 $refresh = $request->query->get("refresh", null);
 
+(new Dotenv())->load(__DIR__.'/.env');
 $cacheUtils = new RedisUtils();
 try {
     $cacheUtils->instance();
@@ -22,16 +23,20 @@ try {
 
     return ResponseUtil::sendErrorResponse($e->getMessage());
 }
-(new Dotenv())->load(__DIR__.'/.env');
 
 $databaseId = $_ENV['NOTION_ACTIVITIES_DATABASE_ID'];
 $key = RedisUtils::generateKey('database-activities-'.$databaseId);
-if($rowId) {
+$key = 'database-activities-'.$databaseId;
+if ($rowId == 'null') {
+    $rowId = 0;
+}
+if ($rowId) {
     $key .= '-'.$rowId;
 }
 if ($refresh) {
     $cacheUtils->delete($key);
 }
+
 try {
     $data = $cacheUtils->cache->get(
         $key,
@@ -39,6 +44,7 @@ try {
             $item->expiresAfter(RedisUtils::DURATION);
             $item->tag(RedisUtils::TAG);
             $fetch = new DatabaseGet();
+
             return $fetch->getEvents($databaseId, $rowId);
         },
     );

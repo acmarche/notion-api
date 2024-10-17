@@ -18,6 +18,7 @@ if (!$id) {
     return ResponseUtil::send404Response('Database not found');
 }
 
+(new Dotenv())->load(__DIR__.'/.env');
 $cacheUtils = new RedisUtils();
 try {
     $cacheUtils->instance();
@@ -26,7 +27,6 @@ try {
 
     return ResponseUtil::sendErrorResponse($e->getMessage());
 }
-(new Dotenv())->load(__DIR__.'/.env');
 
 $key = RedisUtils::generateKey('database-'.$id);
 if ($refresh) {
