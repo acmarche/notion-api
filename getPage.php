@@ -15,7 +15,9 @@ $request = Request::createFromGlobals();
 
 $pageId = $request->query->getString("page_id");
 $refresh = $request->query->get("refresh", null);
-
+if ($pageId == 'null') {
+    $pageId = null;
+}
 if (!$pageId) {
     return ResponseUtil::send404Response('Page not found');
 }

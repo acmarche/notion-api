@@ -13,7 +13,9 @@ use Symfony\Contracts\Cache\ItemInterface;
 $request = Request::createFromGlobals();
 $id = $request->query->getString("id");
 $refresh = $request->query->get("refresh", null);
-
+if ($id == 'null') {
+    $id = null;
+}
 if (!$id) {
     return ResponseUtil::send404Response('Database not found');
 }
