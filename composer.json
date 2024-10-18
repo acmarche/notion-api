@@ -1,5 +1,6 @@
 {
   "require": {
+    "nesbot/carbon": "^3.8.0",
     "mariosimao/notion-sdk-php": "^1.14",
     "symfony/http-client": "^7.1",
     "nyholm/psr7": "^1.8",
@@ -14,7 +15,8 @@
     "symfony/dotenv": "^7.1",
     "symfony/filesystem": "^7.1",
     "symfony/type-info": "^7.1",
-    "symfony/mailer": "^7.1"
+    "symfony/mailer": "^7.1",
+    "ext-pdo": "*"
   },
   "config": {
     "allow-plugins": {
