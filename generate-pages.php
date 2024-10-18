@@ -59,14 +59,14 @@ foreach ($menu as $page) {
         Mailer::sendError($e->getMessage());
         continue;
     }
-    echo $page['name']."\n";
+    //echo $page['name']."\n";
 }
 
 $databaseId = $_ENV['NOTION_ACTIVITIES_DATABASE_ID'];
 $key = RedisUtils::generateKey('database-activities-'.$databaseId);
 $fetch = new DatabaseGet();
 
-echo "Events database \n";
+//echo "Events database \n";
 $cacheUtils->delete($key);
 try {
     $events = $cacheUtils->cache->get(
@@ -120,4 +120,4 @@ try {
     Mailer::sendError($e->getMessage());
 }
 
-echo "Coworkers database \n";
+//echo "Coworkers database \n";
