@@ -26,7 +26,7 @@ class PageGet
         return $this->factoryPage($page);
     }
 
-    public function factoryPage(Page $page, bool $setChildren = true, bool $setBlocks = true): array
+    private function factoryPage(Page $page, bool $setChildren = true, bool $setBlocks = true): array
     {
         $data = [
             'id' => $page->id,
@@ -42,8 +42,12 @@ class PageGet
         if ($page->hasIcon()) {
             $data['icon'] = $page->icon->toArray();
         }
-        $data['breadcrumb'] = $this->pageUtils->breadcrumb($page);
-        $data['link'] = end($data['breadcrumb'])['link'];
+        $breadcrumb = $this->pageUtils->breadcrumb($page);
+        $data['link'] = end($breadcrumb)['link'];
+        if (count($breadcrumb) > 1) {
+            unset($breadcrumb[count($breadcrumb) - 1]);//don't display current page
+        }
+        $data['breadcrumb'] = $breadcrumb;
         $data['child_pages'] = [];
         $data['blocks'] = [];
         if ($setChildren) {
@@ -74,6 +78,7 @@ class PageGet
         $data['page'] = $this->getNotion()->pages()->find($blockId);
 
         dd($data);
+
         return $data;
     }
 
