@@ -55,6 +55,99 @@ WHERE room_id IN (".implode(",", $ids).") AND (moderate = :approuved OR moderate
         }
     }
 
+    public function treatment(array $data):array
+    {
+        return $data;
+        foreach ($days as $day) {
+            $dates = $this->getDateBeginAndDateEnd($day, $hours);
+            try {
+                $results = $this->checkFree($roomId, $dates[0], $dates[1]);
+                if (count($results) > 0) {
+                    throw new \Exception('Déjà réservé à la date du '.$day.' '.$hours);
+                }
+            } catch (\Exception $exception) {
+                throw new \Exception($exception->getMessage());
+            }
+        }
+
+        try {
+            $results = $this->checkFree($roomId, $dates[0], $dates[1]);
+            if (count($results) > 0) {
+                throw new \Exception('Déjà réservé à la date du '.$day.' '.$hours);
+            }
+        } catch (\Exception $exception) {
+            throw new \Exception($exception->getMessage());
+        }
+
+         $user = [
+            ':login' => $data->email,
+            ':nom' => substr($data->name, 0, 30),
+            ':prenom' => substr($data->surname, 0, 30),
+            ':password' => self::generatePassword(),
+            ':email' => $data->email,
+            ':statut' => 'visiteur',
+            ':etat' => 'actif',
+            ':default_area' => 23,
+            ':default_style' => 'default',
+            ':default_list_type' => 'select',
+            ':source' => 'local',
+        ];
+
+        try {
+            $this->insertUser($user, $data->email);
+        } catch (\Exception $exception) {
+            throw new \Exception($exception->getMessage());
+        }
+
+        foreach ($days as $day) {
+            $dates = $this->getDateBeginAndDateEnd($day, $hours);
+            $data = [
+                ':start_time' => $dates[0]->getTimestamp(),
+                ':end_time' => $dates[1]->getTimestamp(),
+                ':entry_type' => 0,
+                ':type' => 'H',//location
+                ':repeat_id' => 0,
+                ':room_id' => $roomId,
+                ':timestamp' => null,
+                ':create_by' => 'ESQUARE',
+                ':beneficiaire_ext' => '',
+                ':beneficiaire' => $email,
+                ':name' => substr($data->name, 0, 80),
+                ':description' => $data->description,
+                ':statut_entry' => '-',
+                ':moderate' => 1,
+                ':option_reservation' => -1,
+            ];
+
+            try {
+                $this->insertEntry($data);
+                $records[] = $data;
+            } catch (\Exception $exception) {
+                throw new \Exception($exception->getMessage());
+            }
+        }
+
+        $allfields = [
+            'secondname' => $data->first_name,
+            'name' => $data->name,
+            'room' => $data->roomId,
+            'numtva' => $this->getValueByKey($formdata_array, 'numtva').' ',
+            'adressedefacturation' => $this->getValueByKey($formdata_array, 'adressedefacturation').' Tel: ',
+            'phone' => $this->getValueByKey($formdata_array, 'phone'),
+            'email' => $this->getValueByKey($formdata_array, 'email'),
+            'details' => $this->getValueByKey($formdata_array, 'details'),
+            'nombredepersonnes' => $this->getValueByKey($formdata_array, 'nombredepersonnes'),
+            'disposition' => $this->getValueByKey($formdata_array, 'disposition'),
+            'rangetime' => $hours,
+        ];
+
+        $mailer = new GrrMailer();
+        $mailer->sendReservation($email, $allfields, $datesTimes);
+
+        return $records;
+    }
+
+
     /**
      * @throws \Exception
      */
