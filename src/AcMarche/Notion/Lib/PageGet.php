@@ -74,10 +74,6 @@ class PageGet
         $block = $this->getNotion()->blocks()->find($blockId);
         $data = $block->toArray();
         $data['children'] = $this->getNotion()->blocks()->findChildren($blockId);
-        $data['children'] = $this->getNotion()->blocks()->findChildrenRecursive($blockId);
-        $data['page'] = $this->getNotion()->pages()->find($blockId);
-
-        dd($data);
 
         return $data;
     }

@@ -4,12 +4,12 @@ namespace AcMarche\Notion\Lib;
 
 use Notion\Blocks\BlockInterface;
 use Notion\Blocks\BlockType;
+use Notion\Blocks\Callout;
 use Notion\Blocks\ChildDatabase;
 use Notion\Blocks\Column;
 use Notion\Blocks\ColumnList;
 use Notion\Blocks\Heading2;
 use Notion\Blocks\Paragraph;
-use Notion\Blocks\Renderer\Markdown\CalloutRenderer;
 use Notion\Blocks\Video;
 
 class Blocks
@@ -119,7 +119,6 @@ class Blocks
                         $column->addChild($blockChild);
                     }
                 } catch (\Exception $e) {
-
                 }
             }
             $column->blocks = $children;//todo dynamic properties
@@ -170,9 +169,12 @@ class Blocks
         return $block->toArray();
     }
 
-    private static function CalloutRenderer(BlockInterface|CalloutRenderer $block): array
+    private static function CalloutRenderer(BlockInterface|Callout $block): array
     {
-        return $block->toArray();
+        $blocks = self::getNotionStatic()->blocks()->findChildren($block->metadata()->id);
+        $callout = $block->toArray();
+        $callout['content'] = $blocks;//to get description event
+        return $callout;
     }
 
     private static function PdfRenderer(BlockInterface $block): array
