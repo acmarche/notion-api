@@ -2,10 +2,12 @@
 
 use AcMarche\Notion\Lib\Grr;
 use AcMarche\Notion\Lib\ResponseUtil;
+use Symfony\Component\Dotenv\Dotenv;
 use Symfony\Component\HttpFoundation\Request;
 
 require "vendor/autoload.php";
 
+(new Dotenv())->load(__DIR__.'/.env');
 $request = Request::createFromGlobals();
 
 $grr = new Grr();
