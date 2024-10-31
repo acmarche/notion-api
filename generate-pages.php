@@ -82,25 +82,27 @@ try {
     Mailer::sendError($e->getMessage());
     $events = [];
 }
-foreach ($events['pages'] as $event) {
-    $key = RedisUtils::generateKey('database-activities-'.$databaseId);
-    $key .= '-'.$event['id'];
-    try {
-        $cacheUtils->cache->get(
-            $key,
-            function (ItemInterface $item) use ($databaseId, $event) {
-                $item->expiresAfter(RedisUtils::DURATION);
-                $item->tag(RedisUtils::TAG);
-                $fetch = new DatabaseGet();
+if (isset($events['pages'])) {
+    foreach ($events['pages'] as $event) {
+        $key = RedisUtils::generateKey('database-activities-'.$databaseId);
+        $key .= '-'.$event['id'];
+        try {
+            $cacheUtils->cache->get(
+                $key,
+                function (ItemInterface $item) use ($databaseId, $event) {
+                    $item->expiresAfter(RedisUtils::DURATION);
+                    $item->tag(RedisUtils::TAG);
+                    $fetch = new DatabaseGet();
 
-                return $fetch->getEvents($databaseId, $event['id']);
-            },
-        );
-        continue;
-    } catch (\Psr\Cache\InvalidArgumentException|\Exception $e) {
-        Mailer::sendError($e->getMessage());
+                    return $fetch->getEvents($databaseId, $event['id']);
+                },
+            );
+            continue;
+        } catch (\Psr\Cache\InvalidArgumentException|\Exception $e) {
+            Mailer::sendError($e->getMessage());
 
-        continue;
+            continue;
+        }
     }
 }
 $databaseId = $_ENV['NOTION_COWORKERS_DATABASE_ID'];
