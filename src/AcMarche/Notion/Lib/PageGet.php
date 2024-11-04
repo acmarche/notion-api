@@ -2,7 +2,6 @@
 
 namespace AcMarche\Notion\Lib;
 
-use Notion\Blocks\BlockInterface;
 use Notion\Pages\Page;
 
 class PageGet

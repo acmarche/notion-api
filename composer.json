@@ -1,5 +1,6 @@
 {
   "require": {
+    "php": "^8.2",
     "nesbot/carbon": "^3.8.0",
     "mariosimao/notion-sdk-php": "^1.14",
     "symfony/http-client": "^7.1",

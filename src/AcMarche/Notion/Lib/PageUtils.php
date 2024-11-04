@@ -89,11 +89,15 @@ class PageUtils
                     $icon = $page->icon->toArray();
                 }
                 $link = end($breadcrumb)['link'];
+                $slug = strtolower($this->slugger->slug($page->title()->toString()));
+                if ($page->id === $_ENV['NOTION_ROOMS_PAGE_ID']) {
+                    $link = '/services/'.$slug.'/'.$page->id; //hack
+                }
                 $childPages[] = [
                     'id' => $page->id,
                     'type' => 'page',
                     'name' => $page->title()->toString(),
-                    'slug' => strtolower($this->slugger->slug($page->title()->toString())),
+                    'slug' => $slug,
                     'cover' => $cover,
                     'icon' => $icon,
                     'link' => $link,
