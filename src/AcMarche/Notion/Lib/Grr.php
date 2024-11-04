@@ -3,11 +3,11 @@
 namespace AcMarche\Notion\Lib;
 
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
 
 class Grr
 {
     private ?\PDO $pdo = null;
-    private int $bktype = 0;
     public static array $rooms = [
         113 => 'La Box',
         114 => 'La Créative',
@@ -55,9 +55,15 @@ WHERE room_id IN (".implode(",", $ids).") AND (moderate = :approuved OR moderate
         }
     }
 
-    public function treatment(array $data):array
+    /**
+     * @throws \Exception
+     */
+    public function treatment(array $data): array
     {
-        return $data;
+        $person = $data['person'];
+        $hours = $data['person']['hours'];
+        $days = $data['daysSelected'];
+        $roomId = $data['roomId'];
         foreach ($days as $day) {
             $dates = $this->getDateBeginAndDateEnd($day, $hours);
             try {
@@ -70,21 +76,12 @@ WHERE room_id IN (".implode(",", $ids).") AND (moderate = :approuved OR moderate
             }
         }
 
-        try {
-            $results = $this->checkFree($roomId, $dates[0], $dates[1]);
-            if (count($results) > 0) {
-                throw new \Exception('Déjà réservé à la date du '.$day.' '.$hours);
-            }
-        } catch (\Exception $exception) {
-            throw new \Exception($exception->getMessage());
-        }
-
-         $user = [
-            ':login' => $data->email,
-            ':nom' => substr($data->name, 0, 30),
-            ':prenom' => substr($data->surname, 0, 30),
+        $user = [
+            ':login' => $person->email,
+            ':nom' => substr($person->name, 0, 30),
+            ':prenom' => 'site web',
             ':password' => self::generatePassword(),
-            ':email' => $data->email,
+            ':email' => $person->email,
             ':statut' => 'visiteur',
             ':etat' => 'actif',
             ':default_area' => 23,
@@ -94,14 +91,14 @@ WHERE room_id IN (".implode(",", $ids).") AND (moderate = :approuved OR moderate
         ];
 
         try {
-            $this->insertUser($user, $data->email);
+            $this->insertUser($user, $person->email);
         } catch (\Exception $exception) {
             throw new \Exception($exception->getMessage());
         }
 
         foreach ($days as $day) {
             $dates = $this->getDateBeginAndDateEnd($day, $hours);
-            $data = [
+            $item = [
                 ':start_time' => $dates[0]->getTimestamp(),
                 ':end_time' => $dates[1]->getTimestamp(),
                 ':entry_type' => 0,
@@ -111,42 +108,44 @@ WHERE room_id IN (".implode(",", $ids).") AND (moderate = :approuved OR moderate
                 ':timestamp' => null,
                 ':create_by' => 'ESQUARE',
                 ':beneficiaire_ext' => '',
-                ':beneficiaire' => $email,
-                ':name' => substr($data->name, 0, 80),
-                ':description' => $data->description,
+                ':beneficiaire' => $person->email,
+                ':name' => substr($person->name, 0, 80),
+                ':description' => $person->description,
                 ':statut_entry' => '-',
                 ':moderate' => 1,
                 ':option_reservation' => -1,
             ];
 
             try {
-                $this->insertEntry($data);
-                $records[] = $data;
+                $this->insertEntry($item);
             } catch (\Exception $exception) {
                 throw new \Exception($exception->getMessage());
             }
         }
 
-        $allfields = [
-            'secondname' => $data->first_name,
-            'name' => $data->name,
-            'room' => $data->roomId,
-            'numtva' => $this->getValueByKey($formdata_array, 'numtva').' ',
-            'adressedefacturation' => $this->getValueByKey($formdata_array, 'adressedefacturation').' Tel: ',
-            'phone' => $this->getValueByKey($formdata_array, 'phone'),
-            'email' => $this->getValueByKey($formdata_array, 'email'),
-            'details' => $this->getValueByKey($formdata_array, 'details'),
-            'nombredepersonnes' => $this->getValueByKey($formdata_array, 'nombredepersonnes'),
-            'disposition' => $this->getValueByKey($formdata_array, 'disposition'),
-            'rangetime' => $hours,
-        ];
-
-        $mailer = new GrrMailer();
-        $mailer->sendReservation($email, $allfields, $datesTimes);
-
-        return $records;
+        return ['ok'];
     }
 
+    /**
+     * @param string $day 2024-04-27
+     * @param string $hours 9-17
+     * @return array|[<int,CarbonInterface>,<int,CarbonInterface>]
+     */
+    private function getDateBeginAndDateEnd(string $day, string $hours): array
+    {
+        $startTime = Carbon::createFromFormat('Y-m-d', $day, new \DateTimeZone('Europe/Paris'));
+        $endTime = Carbon::createFromFormat('Y-m-d', $day, new \DateTimeZone('Europe/Paris'));
+        [$hourBegin, $hourEnd] = explode('-', $hours);
+
+        $startTime->hour = (int)$hourBegin;
+        $startTime->minute = 0;
+        $startTime->second = 0;
+        $endTime->hour = (int)$hourEnd;
+        $endTime->minute = 0;
+        $endTime->second = 0;
+
+        return [$startTime, $endTime];
+    }
 
     /**
      * @throws \Exception
@@ -195,7 +194,7 @@ VALUES(:login,:nom,:prenom,:password,:email,:statut,:etat,:default_area,:default
     /**
      * @throws \Exception
      */
-    public function checkUser(string $email): bool
+    private function checkUser(string $email): bool
     {
         $sql = 'SELECT * FROM grr_utilisateurs WHERE `email` =:email';
 
@@ -220,22 +219,22 @@ VALUES(:login,:nom,:prenom,:password,:email,:statut,:etat,:default_area,:default
     /**
      * @throws \Exception
      */
-    public function checkFree(int $roomId, \DateTimeInterface $startTime, \DateTimeInterface $endTime)
+    private function checkFree(int $roomId, CarbonInterface $startTime, CarbonInterface $endTime): false|array
     {
-        $startModif = Carbon::createFromInterface($startTime);
+        $startModif = clone $startTime;
         $startModif->modify('+1 second');
-        $endModif = Carbon::createFromInterface($endTime);
+        $endModif = clone $endTime;
         $endModif->modify('-1 second');
 
         $sql = "SELECT * FROM grr_entry WHERE (`start_time` BETWEEN :start AND :end OR `end_time` BETWEEN :start AND :end) AND `room_id` = :room_id";
         $stmt = $this->pdo->prepare($sql);
-
         try {
             $stmt->execute([
-                ':start' => $startModif->getTimestamp(),
-                ':end' => $endModif->getTimestamp(),
+                ':start' => $startTime->getTimestamp(),
+                ':end' => $endTime->getTimestamp(),
                 ':room_id' => $roomId,
             ]);
+            Mailer::sendError("grr esquare check free ".$stmt->queryString);
 
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\Exception $exception) {
@@ -244,6 +243,11 @@ VALUES(:login,:nom,:prenom,:password,:email,:statut,:etat,:default_area,:default
                 json_encode($stmt->errorInfo()).' '.$exception->getMessage(),
             );
         }
+    }
+
+    private static function generatePassword(): string
+    {
+        return md5(random_bytes(7));
     }
 
 }

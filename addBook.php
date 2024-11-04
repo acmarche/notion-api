@@ -11,12 +11,11 @@ require "vendor/autoload.php";
 $request = Request::createFromGlobals();
 
 $grr = new Grr();
-
 try {
     $data = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
     //{"person":{"name":"jf2","email":"jf@marche","phone":"084","street":"bois"}}
     $result = $grr->treatment($data);
-    return ResponseUtil::sendSuccessResponse($data, 'Get successfully page');
+    return ResponseUtil::sendSuccessResponse($result, 'Get successfully page');
 } catch (Exception $e) {
     return ResponseUtil::sendErrorResponse($e->getMessage());
 }
