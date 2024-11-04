@@ -9,13 +9,18 @@ require "vendor/autoload.php";
 
 (new Dotenv())->load(__DIR__.'/.env');
 $request = Request::createFromGlobals();
+$content = $request->getContent();
+if ($content) {
+    $grr = new Grr();
+    try {
+        $data = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+        //{"person":{"name":"jf2","email":"jf@marche","phone":"084","street":"bois"}}
+        $result = $grr->treatment($data);
 
-$grr = new Grr();
-try {
-    $data = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
-    //{"person":{"name":"jf2","email":"jf@marche","phone":"084","street":"bois"}}
-    $result = $grr->treatment($data);
-    return ResponseUtil::sendSuccessResponse($result, 'Get successfully page');
-} catch (Exception $e) {
-    return ResponseUtil::sendErrorResponse($e->getMessage());
+        return ResponseUtil::sendSuccessResponse($result, 'Get successfully page');
+    } catch (Exception $e) {
+        return ResponseUtil::sendErrorResponse($e->getMessage());
+    }
 }
+
+return ResponseUtil::sendErrorResponse('empty');
