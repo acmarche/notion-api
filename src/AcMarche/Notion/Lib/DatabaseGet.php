@@ -26,9 +26,13 @@ class DatabaseGet
 
     public function getByIdWithPages(string $id): array
     {
+        $fetch = new PageGet();
         $database = $this->getById($id);
-        $pages = array_map(function (Page $page) {
-            return $page->toArray();
+        $pages = array_map(function (Page $page) use ($fetch) {
+            $page = $page->toArray();
+            $page['content'] = $fetch->fetchById($page['id']);
+
+            return $page;
         }, $this->getAllPagesByDatabase($database));
 
         return ['database' => $database->toArray(), 'pages' => $pages];
