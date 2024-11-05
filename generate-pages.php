@@ -59,14 +59,12 @@ foreach ($menu as $page) {
         Mailer::sendError($e->getMessage());
         continue;
     }
-    //echo $page['name']."\n";
 }
 
 $databaseId = $_ENV['NOTION_ACTIVITIES_DATABASE_ID'];
 $key = RedisUtils::generateKey('database-activities-'.$databaseId);
 $fetch = new DatabaseGet();
 
-//echo "Events database \n";
 $cacheUtils->delete($key);
 try {
     $events = $cacheUtils->cache->get(
@@ -122,4 +120,21 @@ try {
     Mailer::sendError($e->getMessage());
 }
 
-//echo "Coworkers database \n";
+$databases = [$_ENV['NOTION_ECUBE_DATABASE_ID'], $_ENV['NOTION_ROOMS_DATABASE_ID']];
+foreach ($databases as $id) {
+    $key = RedisUtils::generateKey('database-'.$id);
+    try {
+        $data = $cacheUtils->cache->get(
+            $key,
+            function (ItemInterface $item) use ($id) {
+                $item->expiresAfter(RedisUtils::DURATION);
+                $item->tag(RedisUtils::TAG);
+                $fetch = new DatabaseGet();
+
+                return $fetch->getByIdWithPages($id);
+            },
+        );
+    } catch (\Psr\Cache\InvalidArgumentException|\Exception $e) {
+        Mailer::sendError($e->getMessage());
+    }
+}
