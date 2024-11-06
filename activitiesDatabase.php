@@ -6,6 +6,7 @@ use AcMarche\Notion\Lib\DatabaseGet;
 use AcMarche\Notion\Lib\Mailer;
 use AcMarche\Notion\Lib\RedisUtils;
 use AcMarche\Notion\Lib\ResponseUtil;
+use Carbon\Carbon;
 use Symfony\Component\Dotenv\Dotenv;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -47,6 +48,26 @@ try {
             return $fetch->getEvents($databaseId, $rowId);
         },
     );
+
+    $today = new \DateTime();
+    $today->modify('+2months');
+    $pages = [];
+    foreach ($data['pages'] as $event) {
+        $dates = $event['properties']['Date']['date'];
+        $start = Carbon::parse($dates['start']);
+        if ($start->format('Y-m-d') < $today->format('Y-m-d')) {
+            $pages[] = $event;
+        }
+    }
+
+    usort($pages, function ($eventA, $eventB) {
+        $dateA = $eventA['properties']['Date']['date']['start'];
+        $dateB = $eventB['properties']['Date']['date']['start'];
+
+        return $dateA <=> $dateB;
+    });
+
+    $data['pages'] = $pages;
 
     return ResponseUtil::sendSuccessResponse($data, 'Get successfully database');
 } catch (\Psr\Cache\InvalidArgumentException|\Exception $e) {

@@ -2,6 +2,7 @@
 
 namespace AcMarche\Notion\Lib;
 
+use Carbon\Carbon;
 use Notion\Databases\Database;
 use Notion\Databases\Query;
 use Notion\Databases\Query\CompoundFilter;

@@ -10,17 +10,29 @@ class ResponseUtil
     public static function sendErrorResponse(string $message): JsonResponse
     {
         $response = [
-            'error' => [
-                'status' => 'error',
-                'data' => null,
-                'message' => $message,
-                "target" => "query",
-                'code' => Response::HTTP_INTERNAL_SERVER_ERROR,
-                'statusCode' => Response::HTTP_INTERNAL_SERVER_ERROR,
-            ],
+            'status' => 'error',
+            'statusMessage' => $message,
+            'message' => $message,
+            'code' => Response::HTTP_BAD_REQUEST,
+            'statusCode' => Response::HTTP_BAD_REQUEST,
         ];
         $jsonResponse = new JsonResponse($response);
-        $jsonResponse->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
+        $jsonResponse->setStatusCode(Response::HTTP_BAD_REQUEST, $message);
+
+        return $jsonResponse->send();
+    }
+
+    public static function sendInternalErrorResponse(string $message): JsonResponse
+    {
+        $response = [
+            'status' => 'error',
+            'statusMessage' => $message,
+            'message' => $message,
+            'code' => Response::HTTP_INTERNAL_SERVER_ERROR,
+            'statusCode' => Response::HTTP_INTERNAL_SERVER_ERROR,
+        ];
+        $jsonResponse = new JsonResponse($response);
+        $jsonResponse->setStatusCode(Response::HTTP_BAD_REQUEST, $message);
 
         return $jsonResponse->send();
     }
@@ -28,7 +40,7 @@ class ResponseUtil
     public static function sendSuccessResponse(mixed $data, string $message): JsonResponse
     {
         $jsonResponse = new JsonResponse($data);
-        $jsonResponse->setStatusCode(Response::HTTP_OK);
+        $jsonResponse->setStatusCode(Response::HTTP_OK, $message);
 
         return $jsonResponse->send();
     }
@@ -44,7 +56,7 @@ class ResponseUtil
             ],
         ];
         $jsonResponse = new JsonResponse($response);
-        $jsonResponse->setStatusCode(Response::HTTP_NOT_FOUND);
+        $jsonResponse->setStatusCode(Response::HTTP_NOT_FOUND, $message);
 
         return $jsonResponse->send();
     }
