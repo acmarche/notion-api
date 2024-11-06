@@ -14,7 +14,7 @@ if ($content) {
     $grr = new Grr();
     try {
         $data = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
-        //{"person":{"name":"jf2","email":"jf@marche","phone":"084","street":"bois"}}
+
         $result = $grr->treatment($data);
 
         return ResponseUtil::sendSuccessResponse($result, 'Get successfully page');

@@ -64,6 +64,24 @@ WHERE room_id IN (".implode(",", $ids).") AND (moderate = :approuved OR moderate
         $hours = $data['person']['hours'];
         $days = $data['daysSelected'];
         $roomId = $data['roomId'];
+        $fieldsRequired = ['name', 'email', 'phone', 'number_people', 'street'];
+
+        if (count($days) === 0) {
+            throw new \Exception('Aucun jour sélectionné');
+        }
+        if (!$hours) {
+            throw new \Exception('Aucune heure sélectionnée');
+        }
+        if (!$roomId) {
+            throw new \Exception('Aucune salle sélectionnée');
+        }
+        foreach ($fieldsRequired as $field) {
+            if (!array_key_exists($field, $person) || $person[$field] == '') {
+                throw new \Exception('Veuillez remplir tous les champs '.$field);
+            }
+        }
+
+        $this->connect();
         foreach ($days as $day) {
             $dates = $this->getDateBeginAndDateEnd($day, $hours);
             try {
@@ -76,10 +94,11 @@ WHERE room_id IN (".implode(",", $ids).") AND (moderate = :approuved OR moderate
             }
         }
 
+        return ['ok'];
         $user = [
             ':login' => $person->email,
             ':nom' => substr($person->name, 0, 30),
-            ':prenom' => 'site web',
+            ':prenom' => substr($person->societe, 0, 30),
             ':password' => self::generatePassword(),
             ':email' => $person->email,
             ':statut' => 'visiteur',
@@ -96,6 +115,7 @@ WHERE room_id IN (".implode(",", $ids).") AND (moderate = :approuved OR moderate
             throw new \Exception($exception->getMessage());
         }
 
+        $description = 'Société '.$person->vat.' '.'Tva '.$person->vat.' '.'Nbre personne: '.$person->number_people.' Disposition table: '.$person->table_layout.' Autre information'.$person->info;
         foreach ($days as $day) {
             $dates = $this->getDateBeginAndDateEnd($day, $hours);
             $item = [
@@ -110,7 +130,7 @@ WHERE room_id IN (".implode(",", $ids).") AND (moderate = :approuved OR moderate
                 ':beneficiaire_ext' => '',
                 ':beneficiaire' => $person->email,
                 ':name' => substr($person->name, 0, 80),
-                ':description' => $person->description,
+                ':description' => $description,
                 ':statut_entry' => '-',
                 ':moderate' => 1,
                 ':option_reservation' => -1,
