@@ -61,10 +61,10 @@ try {
     }
 
     usort($pages, function ($eventA, $eventB) {
-        $dateA = $eventA['properties']['Date']['date']['start'];
-        $dateB = $eventB['properties']['Date']['date']['start'];
+        $dateA = Carbon::parse($eventA['properties']['Date']['date']['start']);
+        $dateB = Carbon::parse($eventB['properties']['Date']['date']['start']);
 
-        return $dateA <=> $dateB;
+        return $dateA->format('Y-m-d') <=> $dateB->format('Y-m-d');
     });
 
     $data['pages'] = $pages;
