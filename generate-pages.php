@@ -37,7 +37,14 @@ try {
         },
     );
 } catch (\Psr\Cache\InvalidArgumentException|\Exception$e) {
-    Mailer::sendError($e->getMessage());
+    $error = $e->getMessage();
+    if (isset($page['id'])) {
+        $error .= 'Page id'.$page['id'];
+    }
+    if (isset($page['title'])) {
+        $error .= 'Page title '.$page['title'];
+    }
+    Mailer::sendError($error);
 
     return;
 }
@@ -56,7 +63,14 @@ foreach ($menu as $page) {
             },
         );
     } catch (\Exception|\Psr\Cache\InvalidArgumentException $e) {
-        Mailer::sendError($e->getMessage());
+        $error = $e->getMessage();
+        if (isset($page['id'])) {
+            $error .= 'Page id'.$page['id'];
+        }
+        if (isset($page['title'])) {
+            $error .= 'Page title '.$page['title'];
+        }
+        Mailer::sendError($error);
         continue;
     }
 }

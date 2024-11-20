@@ -50,7 +50,11 @@ class PageGet
         $data['child_pages'] = [];
         $data['blocks'] = [];
         if ($setChildren) {
-            $children = $this->getNotion()->blocks()->findChildren($page->id);
+            $children = [];
+            try {
+                $children = $this->getNotion()->blocks()->findChildren($page->id);
+            } catch (\Exception $e) {
+            }
             $data['child_pages'] = $this->pageUtils->childPages($children);
             if ($setBlocks) {
                 $blocks = [];
