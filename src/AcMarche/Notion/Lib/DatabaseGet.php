@@ -184,7 +184,7 @@ class DatabaseGet
             ->changeFilter(
                 CompoundFilter::and(
                     Query\MultiSelectFilter::property('Type de membre')->contains('Coworker'),
-                    Query\StatusFilter::property('Convention coworking')->equals('Actif'),
+                    Query\SelectFilter::property('Publier sur site web')->equals('Oui'),
                 ),
             )
             ->addSort(Sort::property("Nom")->ascending());
