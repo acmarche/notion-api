@@ -64,6 +64,14 @@ class PageGet
                 $data['blocks'] = $blocks;
             }
         }
+        $data['excerpt'] = null;
+        if (count($data['blocks']) > 0) {
+            if ($data['blocks'][0]['type'] === 'paragraph') {
+                $data['excerpt'] = $data['blocks'][0];
+                unset($data['blocks'][0]);
+                $data['blocks'] = array_values($data['blocks']);
+            }
+        }
 
         //$data = $this->fileUtils->treatment($data);
 
