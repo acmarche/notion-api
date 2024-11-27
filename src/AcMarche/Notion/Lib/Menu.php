@@ -24,6 +24,9 @@ class Menu
         try {
             $root = $fetch->fetchById($_ENV['NOTION_ROOT_ID']);
             foreach ($root['child_pages'] as $page) {
+                if ($page['id'] === $_ENV['NOTION_SERVICES_ID']) {
+                    continue;
+                }
                 $slug = strtolower($slugger->slug($page['name']));
                 $page['link'] = '/'.$slug.'/'.$page['id'];
                 $pages [] = $page;
